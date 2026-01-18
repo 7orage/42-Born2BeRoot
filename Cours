@@ -1,0 +1,265 @@
+# **Cours complet : Projet Born2beRoot – Installation et configuration d’un serveur Linux**
+
+---
+
+## **1️⃣ Systèmes d’exploitation et installation**
+
+### a) Distributions à connaître
+
+* **Debian stable**
+
+  * Stable = version testée, fiable.
+  * Gestionnaire de paquets :
+
+    * `apt` → commandes simples pour installer, supprimer, mettre à jour.
+      Exemple : `sudo apt update && sudo apt upgrade`
+    * `aptitude` → plus avancé, interface en texte et résolution automatique des dépendances.
+  * Sécurité : **AppArmor** pour restreindre le comportement des applications.
+  * Idéal pour débutants.
+* **Rocky Linux stable**
+
+  * Fork de RHEL, basé sur RedHat.
+  * Gestionnaire de paquets : `dnf` ou `yum`
+
+    * Exemple : `sudo dnf install vim`
+  * Sécurité : **SELinux**
+  * Installation plus complexe, mais stable et sécurisée.
+
+### b) Points clés
+
+* Installer **sans interface graphique**.
+* Connaître les bases de `systemd` pour gérer les services :
+
+  * `systemctl start/stop/status <service>`
+  * `systemctl enable <service>` → démarrage automatique
+* Comprendre la structure des fichiers Linux :
+
+  * `/etc/` → configuration
+  * `/var/log/` → logs
+  * `/home/` → utilisateurs
+
+---
+
+## **2️⃣ Installation minimale et services**
+
+### a) Services essentiels
+
+* **SSH** : permet l’accès distant sécurisé.
+* **Firewall** : contrôle les ports ouverts.
+* **Cron** : exécute des tâches planifiées (ex : monitoring script).
+* Services système (`systemd`, `journald`, etc.)
+
+### b) Commandes utiles
+
+```bash
+sudo systemctl status ssh
+sudo systemctl enable ufw
+sudo ufw allow 4242/tcp
+```
+
+### c) Bonnes pratiques
+
+* Ne jamais installer de GUI.
+* Ne garder que les services nécessaires pour réduire la surface d’attaque.
+
+---
+
+## **3️⃣ Gestion du stockage et LVM**
+
+### a) Concepts clés
+
+* **LVM (Logical Volume Manager)** :
+
+  * PV : Physical Volume (disque physique ou partition)
+  * VG : Volume Group (regroupe les PV)
+  * LV : Logical Volume (partition logique que tu peux redimensionner)
+* **Partitions chiffrées** : sécurisent les données (`cryptsetup luksFormat`).
+
+### b) Commandes
+
+```bash
+sudo pvcreate /dev/sda2
+sudo vgcreate vg_root /dev/sda2
+sudo lvcreate -L 10G -n lv_home vg_root
+sudo mkfs.ext4 /dev/vg_root/lv_home
+sudo cryptsetup luksFormat /dev/sda2
+```
+
+### c) Astuces
+
+* Choisir la taille des partitions selon l’usage :
+
+  * `/` : 20–30 Go
+  * `/home` : le reste
+  * `swap` : 2×RAM si petite RAM, sinon RAM
+
+---
+
+## **4️⃣ Sécurité du serveur**
+
+### a) SSH
+
+* Configuration dans `/etc/ssh/sshd_config` :
+
+  ```
+  Port 4242
+  PermitRootLogin no
+  PasswordAuthentication yes
+  ```
+* Redémarrer SSH : `sudo systemctl restart ssh`
+
+### b) Firewall
+
+* Debian : **UFW**
+
+  ```bash
+  sudo ufw enable
+  sudo ufw allow 4242/tcp
+  sudo ufw status
+  ```
+* Rocky : **Firewalld**
+
+  ```bash
+  sudo systemctl enable firewalld
+  sudo firewall-cmd --add-port=4242/tcp --permanent
+  sudo firewall-cmd --reload
+  ```
+
+### c) SELinux / AppArmor
+
+* **SELinux** : Mandatory Access Control (MAC)
+
+  * Modes : Enforcing / Permissive / Disabled
+  * Vérifier : `getenforce`
+* **AppArmor** : restreint l’accès aux fichiers et actions par application
+
+  * Vérifier : `sudo aa-status`
+
+---
+
+## **5️⃣ Gestion des utilisateurs et groupes**
+
+### a) Concepts
+
+* Chaque utilisateur a un UID et un groupe principal.
+* Les groupes permettent de gérer les permissions collectives.
+
+### b) Commandes
+
+```bash
+sudo adduser monlogin
+sudo usermod -aG sudo,user42 monlogin
+sudo groupadd user42
+sudo passwd monlogin
+```
+
+### c) Bonnes pratiques
+
+* Ne jamais se connecter directement en root.
+* Créer un utilisateur avec sudo.
+* Pouvoir expliquer la structure `/etc/passwd` et `/etc/group`.
+
+---
+
+## **6️⃣ Politique de mots de passe**
+
+### a) Paramètres à appliquer
+
+* Expiration : 30 jours
+* Minimum : 2 jours
+* Alerte : 7 jours avant expiration
+* Longueur ≥ 10, majuscule + minuscule + chiffre
+* Pas de 3 caractères identiques consécutifs
+* Ne pas contenir le nom d’utilisateur
+
+### b) Commandes utiles
+
+```bash
+sudo chage -M 30 -m 2 -W 7 monlogin
+sudo passwd monlogin
+sudo passwd root
+```
+
+### c) Astuce
+
+* Modifier tous les mots de passe après configuration pour être conforme.
+
+---
+
+## **7️⃣ Configuration de sudo**
+
+### a) Fichier principal : `/etc/sudoers` (ou via `visudo`)
+
+* Limiter tentatives : `Defaults passwd_tries=3`
+* Message personnalisé : `Defaults badpass_message="Erreur : mot de passe incorrect"`
+* Activer TTY : `Defaults requiretty`
+* Restriction du PATH :
+
+  ```
+  Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
+  ```
+* Archiver les commandes :
+
+  ```bash
+  Defaults logfile="/var/log/sudo/sudo.log"
+  ```
+
+---
+
+## **8️⃣ Monitoring et scripts**
+
+### a) Script `monitoring.sh`
+
+* Langage : Bash
+* Commandes importantes :
+
+  ```bash
+  uname -a                 # architecture et kernel
+  lscpu                     # processeurs
+  free -h                   # RAM
+  df -h                     # stockage
+  top -bn1 | grep "Cpu(s)"  # CPU usage
+  who                       # utilisateurs connectés
+  ip a                      # IP
+  cat /sys/class/net/eth0/address # MAC
+  sudo cat /var/log/sudo/sudo.log | wc -l  # nb commandes sudo
+  ```
+* Diffuser à tous les terminaux : `wall`
+* Automatisation : `cron` :
+
+  ```bash
+  sudo crontab -e
+  */10 * * * * /root/monitoring.sh
+  ```
+
+### b) Bonnes pratiques
+
+* Pas d’erreur affichée.
+* Script capable de s’arrêter proprement.
+* Documenter chaque ligne pour la défense.
+
+---
+
+## **9️⃣ Configuration système générale**
+
+* Hostname : `sudo hostnamectl set-hostname wil42`
+* Vérifier : `hostnamectl`
+* Services critiques activés au démarrage : `systemctl enable <service>`
+* Vérifier avec `systemctl list-unit-files --type=service | grep enabled`
+
+---
+
+## **🔟 Points clés pour la défense**
+
+* Savoir expliquer :
+
+  * Pourquoi LVM et partitions chiffrées
+  * Pourquoi SSH sur un port non standard
+  * Différence aptitude/apt
+  * Rôle de AppArmor ou SELinux
+  * Comment fonctionne le script de monitoring
+  * Politique de mots de passe et sudo
+* Montrer toutes les commandes et fichiers de configuration utilisés.
+
+---
+

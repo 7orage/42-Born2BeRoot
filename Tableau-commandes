@@ -1,0 +1,75 @@
+| **Catégorie**               | **Commandes / Fichiers**                               | **Explications / Objectif**                       |                                    |
+| --------------------------- | ------------------------------------------------------ | ------------------------------------------------- | ---------------------------------- |
+| **Système / OS**            | `lsb_release -a`, `uname -r`, `cat /etc/os-release`    | Vérifier la version de ton OS et du kernel        |                                    |
+|                             | `apt update && apt upgrade` (Debian)                   | Mettre à jour le système                          |                                    |
+|                             | `dnf update` (Rocky)                                   | Mettre à jour le système                          |                                    |
+|                             | `/etc/os-release`                                      | Fichier qui contient les infos sur l’OS           |                                    |
+
+
+| **Services système**        | `systemctl status <service>`                           | Vérifier si un service tourne                     |                                    |
+|                             | `systemctl enable <service>`                           | Activer un service au démarrage                   |                                    |
+|                             | `systemctl start/stop <service>`                       | Démarrer / arrêter un service                     |                                    |
+
+
+| **SSH**                     | `/etc/ssh/sshd_config`                                 | Configuration du service SSH                      |                                    |
+|                             | `sudo systemctl restart ssh`                           | Appliquer les changements                         |                                    |
+|                             | `PermitRootLogin no`                                   | Interdire login root                              |                                    |
+|                             | `Port 4242`                                            | Changer le port SSH                               |                                    |
+
+
+| **Firewall**                | Debian : `sudo ufw enable`                             | Activer UFW                                       |                                    |
+|                             | Debian : `sudo ufw allow 4242/tcp`                     | Ouvrir le port SSH                                |                                    |
+|                             | Rocky : `sudo systemctl enable firewalld`              | Activer Firewalld                                 |                                    |
+|                             | Rocky : `firewall-cmd --add-port=4242/tcp --permanent` | Ouvrir le port SSH                                |                                    |
+|                             | Rocky : `firewall-cmd --reload`                        | Appliquer les règles                              |                                    |
+
+
+| **LVM / Chiffrement**       | `pvcreate /dev/sdaX`                                   | Créer un volume physique                          |                                    |
+|                             | `vgcreate vg_name /dev/sdaX`                           | Créer un groupe de volumes                        |                                    |
+|                             | `lvcreate -L 10G -n lv_name vg_name`                   | Créer une partition logique                       |                                    |
+|                             | `mkfs.ext4 /dev/vg_name/lv_name`                       | Formater la partition                             |                                    |
+|                             | `cryptsetup luksFormat /dev/sdaX`                      | Chiffrement LUKS de la partition                  |                                    |
+|                             | `lvdisplay` / `vgdisplay` / `pvdisplay`                 | Vérifier les volumes                              |                                    |
+
+
+| **Utilisateurs & Groupes**  | `adduser monlogin`                                     | Créer un utilisateur                              |                                    |
+|                             | `groupadd user42`                                      | Créer un groupe                                   |                                    |
+|                             | `usermod -aG sudo,user42 monlogin`                     | Ajouter un utilisateur à plusieurs groupes        |                                    |
+|                             | `passwd monlogin`                                      | Définir le mot de passe                           |                                    |
+|                             | `/etc/passwd`                                          | Informations utilisateurs                         |                                    |
+|                             | `/etc/group`                                           | Informations groupes                              |                                    |
+|                             | `/etc/shadow`                                          | Informations mots de passe chiffrés               |                                    |
+
+
+| **Politique mots de passe** | `chage -M 30 -m 2 -W 7 monlogin`                       | Expiration, délai minimum, avertissement          |                                    |
+|                             | `/etc/login.defs`                                      | Paramètres globaux de mot de passe                |                                    |
+
+
+| **Sudo**                    | `/etc/sudoers` ou `visudo`                             | Configurer sudo                                   |                                    |
+|                             | `Defaults passwd_tries=3`                              | Limite les tentatives                             |                                    |
+|                             | `Defaults badpass_message="Erreur"`                    | Message personnalisé                              |                                    |
+|                             | `Defaults requiretty`                                  | TTY obligatoire pour sudo                         |                                    |
+|                             | `Defaults logfile="/var/log/sudo/sudo.log"`            | Archiver toutes les commandes                     |                                    |
+|                             | `Defaults secure_path="..."`                           | Restreindre les chemins exécutables               |                                    |
+
+
+| **Monitoring (Bash)**       | `uname -a`                                             | Architecture + kernel                             |                                    |
+|                             | `lscpu`                                                | Processeurs physiques / virtuels                  |                                    |
+|                             | `free -h`                                              | RAM disponible                                    |                                    |
+|                             | `df -h`                                                | Espace disque utilisé / disponible                |                                    |
+|                             | `top -bn1                                              | grep "Cpu(s)"`                                    | Charge CPU                         |
+|                             | `who`                                                  | Utilisateurs connectés                            |                                    |
+|                             | `ip a`                                                 | IP du serveur                                     |                                    |
+|                             | `cat /sys/class/net/eth0/address`                      | Adresse MAC                                       |                                    |
+|                             | `sudo cat /var/log/sudo/sudo.log`                      | wc -l`                                            | Nombre de commandes sudo exécutées |
+|                             | `wall "message"`                                       | Diffuser info sur tous les terminaux              |                                    |
+|                             | `cron`                                                 | Planifier l’exécution du script toutes les 10 min |                                    |
+
+
+| **Hostname**                | `hostnamectl set-hostname wil42`                       | Définir le nom de la machine                      |                                    |
+|                             | `hostnamectl`                                          | Vérifier le hostname                              |                                    |
+
+
+| **Vérifications générales** | `systemctl list-unit-files --type=service              | grep enabled`                                     | Lister les services activés        |
+|                             | `getenforce` (SELinux)                                 | Vérifier le mode SELinux                          |                                    |
+|                             | `aa-status` (AppArmor)                                 | Vérifier le statut AppArmor                       |                                    |

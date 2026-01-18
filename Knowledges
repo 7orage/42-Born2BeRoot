@@ -1,0 +1,144 @@
+# COMMANDES
+## Verif interface graphique
+
+`ls /usr/bin/*session` pr uniquement notre session
+
+## Verif le parefeu
+
+`sudo ufw status`
+
+`sudo service ufw status`
+
+puis verif que cest bien active
+
+## Verif le service ssh
+
+`sudo service ssh status`
+
+## Verif l'OS
+
+`uname -v`
+
+## Check user and group
+
+`getent group sudo user42`
+
+## Add user and check pssw
+
+`sudo adduser <user>`
+
+## Add group
+
+`sudo addgroup evaluating`
+
+## Check adding to group
+
+`sudo adduser <user> <group>`
+
+## Check hostname
+
+`hostname`
+
+## Check change hostname
+
+`sudo nano /etc/hostname`
+ 
+ `hostnamectl set-hostname <name>` pr changer egalement a laffichage le hostname
+	`nano /etc/hostname` 
+
+`sudo /etc/hosts`
+
+## Check partitions
+
+`lsblk`
+
+## Check sudo
+
+`which -v`
+
+## Check and add sudo group
+
+`sudo adduser <user> sudo`
+
+`getent group sudo`
+
+## Check sudo rules
+
+`nano /ect/sudoers.d/sudo_config`
+
+## Check sudo logs
+
+`cd /var/log/sudo`
+
+`ls`
+
+`cat sudo_config`
+pour montrer que le chemin d'acces existe et quil contient un fichier
+
+## Check UFW advanced
+
+`dpkg -s ufw` pr veri fqu ecest bien instqlle
+
+`sudo servic ufw status`
+
+## Check ufw active rules
+
+`sudo ufw status numbered`
+
+## Check rule creation
+
+`sudo ufw allow <port>` add
+
+`sudo ufw delete <num_rule>` del 
+
+## Check SSh advanced
+
+`which ssh`
+
+`sudo service ssh status`
+
+## Check SSH usage
+
+`ssh <user>@localhost -p 4142`
+
+## Check crontab of script
+
+`sudo crontab -u root -e`
+
+
+
+
+
+
+**********************
+**********************
+# CONNAISSANCES
+## Sudo
+
+Sudo sur une VM (EVM) sert surtout à exécuter des commandes en tant qu’administrateur (root) sans te connecter directement au compte root.
+
+## SSH
+
+SSH permet de se connecter à ta VM à distance en ligne de commande, de façon sécurisée.
+On trouve dabord l'ip de la VM  `hostname I` puis on se co sur un autre terminal avec `ssh utilisateur@IP`
+
+## UFW
+
+C’est un pare-feu simple à utiliser sous Linux, surtout sur Ubuntu et les distributions basées dessus.
+À quoi ça sert ?
+UFW permet de contrôler les connexions réseau :
+Autoriser ou bloquer des ports (ex : 22 pour SSH, 80 pour HTTP)
+Autoriser ou bloquer des IP
+Protéger ton système contre des accès non désiré
+
+# Sudo policies
+
+👉 « politiques sudo »
+ou plus naturellement :
+👉 « règles sudo »
+
+Sens selon le contexte
+Sudo policies = règles qui définissent :
+quels utilisateurs peuvent utiliser sudo
+quelles commandes ils peuvent exécuter
+avec ou sans mot de passe
